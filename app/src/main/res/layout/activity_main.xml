@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@android:color/black"
+    tools:context=".MainActivity">
+
+    <!-- Основной блок параметров -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="0.82"
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:background="#222">
+
+        <!-- Поля ввода параметров -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="8dp">
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="START_HOUR:"
+                android:textColor="@android:color/white"
+                android:textSize="14sp" />
+            <EditText
+                android:id="@+id/edit_start_hour"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="08:00"
+                android:text="08:00"
+                android:inputType="time"
+                android:textColor="@android:color/white"
+                android:textColorHint="@android:color/darker_gray" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="8dp">
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="END_HOUR:"
+                android:textColor="@android:color/white"
+                android:textSize="14sp" />
+            <EditText
+                android:id="@+id/edit_end_hour"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="20:00"
+                android:text="20:00"
+                android:inputType="time"
+                android:textColor="@android:color/white"
+                android:textColorHint="@android:color/darker_gray" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="8dp">
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="INTERVAL:"
+                android:textColor="@android:color/white"
+                android:textSize="14sp" />
+            <EditText
+                android:id="@+id/edit_interval"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="00:10"
+                android:text="00:10"
+                android:inputType="time"
+                android:textColor="@android:color/white"
+                android:textColorHint="@android:color/darker_gray" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="8dp">
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="TOKEN:"
+                android:textColor="@android:color/white"
+                android:textSize="14sp" />
+            <EditText
+                android:id="@+id/edit_token"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="SECRET123"
+                android:text="SECRET123"
+                android:textColor="@android:color/white"
+                android:textColorHint="@android:color/darker_gray" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="8dp">
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="USER_ID:"
+                android:textColor="@android:color/white"
+                android:textSize="14sp" />
+            <EditText
+                android:id="@+id/edit_user_id"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="YOUR_TRACKER_ID_123"
+                android:text="YOUR_TRACKER_ID_123"
+                android:textColor="@android:color/white"
+                android:textColorHint="@android:color/darker_gray" />
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/button_start_tracker"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Start Tracker"
+            android:layout_marginTop="8dp"
+            android:textAllCaps="false" />
+
+        <TextView
+            android:id="@+id/last_message_textview"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Last server message: ---"
+            android:textColor="@android:color/holo_green_light"
+            android:layout_marginTop="8dp"
+            android:textSize="14sp"
+            android:padding="8dp"
+            android:background="#111"
+            android:scrollbars="vertical" />
+    </LinearLayout>
+
+    <!-- Подвал -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="0.18"
+        android:gravity="bottom"
+        android:orientation="vertical">
+        <include layout="@layout/developer_info_layout" />
+    </LinearLayout>
+
+</LinearLayout>
+
