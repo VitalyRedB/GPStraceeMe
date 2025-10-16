@@ -91,7 +91,8 @@ class TrackingService : Service(), LocationHelper.OnLocationReceivedCallback {
 
     override fun onLocationReceived(location: Location) {
         locationHelper.stopLocationUpdates()
-        gpsTrackerManager.sendGpsPoint(location.latitude, location.longitude)
+
+        gpsTrackerManager.sendGpsPoint(this, location.latitude, location.longitude)
     }
 
     private fun createNotification(): Notification {

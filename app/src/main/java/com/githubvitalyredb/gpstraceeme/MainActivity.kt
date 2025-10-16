@@ -16,6 +16,9 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import java.util.*
+import android.view.animation.AnimationUtils
+import android.widget.ImageView
+import android.media.MediaPlayer
 
 class MainActivity : AppCompatActivity() {
 
@@ -34,6 +37,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var editUserId: EditText
     private lateinit var lastMessageTextView: TextView
     private lateinit var startButton: Button
+
+    private lateinit var mediaPlayer: MediaPlayer
 
     private val messageReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -66,7 +71,19 @@ class MainActivity : AppCompatActivity() {
         setupTimeMask(editEndHour)
         setupTimeMask(editInterval)
 
+        // Загружаем анимацию из XML, Запускаем анимацию
+        val developerImageView = findViewById<ImageView>(R.id.developerImageView)
+        val anim = AnimationUtils.loadAnimation(this, R.anim.rotate_and_scale_animation)
+        developerImageView.startAnimation(anim)
+
+        // Фоновая музыка через MediaPlayer
+        mediaPlayer = MediaPlayer.create(this, R.raw.background_music)
+        mediaPlayer.isLooping = true   // чтобы музыка играла бесконечно
+        mediaPlayer.setVolume(1f, 1f)  // максимальная громкость
+        mediaPlayer.start()
+
         startButton.setOnClickListener {
+            playSound(R.raw.data_sound)
             try {
                 val startParts = editStartHour.text.toString().split(":")
                 val endParts = editEndHour.text.toString().split(":")
@@ -115,9 +132,27 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
+    override fun onPause() {
+        super.onPause()
+        mediaPlayer.pause()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        mediaPlayer.start()
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         LocalBroadcastManager.getInstance(this).unregisterReceiver(messageReceiver)
+        mediaPlayer.release()
+    }
+
+
+    private fun playSound(resId: Int) {
+        val soundEffectPlayer = MediaPlayer.create(this, resId)
+        soundEffectPlayer.setOnCompletionListener { mp -> mp.release() }
+        soundEffectPlayer.start()
     }
 
     private fun setupTimeMask(editText: EditText) {
