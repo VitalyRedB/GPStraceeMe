@@ -4,25 +4,23 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.SharedPreferences
+import android.media.MediaPlayer
 import android.os.Build
 import android.os.Bundle
-import android.text.Editable
-import android.text.TextWatcher
+import android.view.animation.AnimationUtils
 import android.widget.Button
-import android.widget.EditText
+import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
-import java.util.*
-import android.view.animation.AnimationUtils
-import android.widget.ImageView
-import android.media.MediaPlayer
 
 class MainActivity : AppCompatActivity() {
 
     companion object {
+        private const val PREFS_NAME = "AppPrefs"
         var TEST_START_HOUR = 8
         var TEST_END_HOUR = 20
         var TEST_INTERVAL_MINUTES = 10
@@ -30,20 +28,22 @@ class MainActivity : AppCompatActivity() {
         var USER_ID = "KOD_ID_123"
     }
 
-    private lateinit var editStartHour: EditText
-    private lateinit var editEndHour: EditText
-    private lateinit var editInterval: EditText
-    private lateinit var editToken: EditText
-    private lateinit var editUserId: EditText
+    private lateinit var textStartHour: TextView
+    private lateinit var textEndHour: TextView
+    private lateinit var textInterval: TextView
+    private lateinit var textToken: TextView
+    private lateinit var textUserId: TextView
     private lateinit var lastMessageTextView: TextView
     private lateinit var startButton: Button
+    private lateinit var settingsButton: Button
+    private lateinit var prefs: SharedPreferences
 
-    private lateinit var mediaPlayer: MediaPlayer
-
-    private val messageReceiver = object : BroadcastReceiver() {
+    // BroadcastReceiver для JSON сообщений
+    private val jsonReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
-            val jsonMessage = intent?.getStringExtra(TrackingService.EXTRA_JSON_MESSAGE)
-            jsonMessage?.let { lastMessageTextView.text = it }
+            val message = intent?.getStringExtra(TrackingService.EXTRA_JSON_MESSAGE) ?: "---"
+            lastMessageTextView.text = "Last server message: $message"
+            lastMessageTextView.setTextColor(android.graphics.Color.YELLOW) // 🔔 жёлтый цвет
         }
     }
 
@@ -51,125 +51,142 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        editStartHour = findViewById(R.id.edit_start_hour)
-        editEndHour = findViewById(R.id.edit_end_hour)
-        editInterval = findViewById(R.id.edit_interval)
-        editToken = findViewById(R.id.edit_token)
-        editUserId = findViewById(R.id.edit_user_id)
+        prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+
+        // Инициализация Views
+        textStartHour = findViewById(R.id.text_start_hour)
+        textEndHour = findViewById(R.id.text_end_hour)
+        textInterval = findViewById(R.id.text_interval)
+        textToken = findViewById(R.id.text_token)
+        textUserId = findViewById(R.id.text_user_id)
         lastMessageTextView = findViewById(R.id.last_message_textview)
         startButton = findViewById(R.id.button_start_tracker)
+        settingsButton = findViewById(R.id.settingsButton)
 
-        // Подставляем текущие значения по умолчанию
-        editStartHour.setText(String.format("%02d:00", TEST_START_HOUR))
-        editEndHour.setText(String.format("%02d:00", TEST_END_HOUR))
-        editInterval.setText(String.format("00:%02d", TEST_INTERVAL_MINUTES))
-        editToken.setText(TOKEN)
-        editUserId.setText(USER_ID)
+        // Загрузка сохранённых значений
+        loadDataToViews()
 
-        // Маска ввода HH:mm
-        setupTimeMask(editStartHour)
-        setupTimeMask(editEndHour)
-        setupTimeMask(editInterval)
-
-        // Загружаем анимацию из XML, Запускаем анимацию
+        // Анимация для developerImageView
         val developerImageView = findViewById<ImageView>(R.id.developerImageView)
         val anim = AnimationUtils.loadAnimation(this, R.anim.rotate_and_scale_animation)
         developerImageView.startAnimation(anim)
 
-        // Фоновая музыка через MediaPlayer
-        mediaPlayer = MediaPlayer.create(this, R.raw.background_music)
-        mediaPlayer.isLooping = true   // чтобы музыка играла бесконечно
-        mediaPlayer.setVolume(1f, 1f)  // максимальная громкость
-        mediaPlayer.start()
+        // Кнопка запуска трекера
+        startButton.setOnClickListener { startTracker() }
 
-        startButton.setOnClickListener {
-            playSound(R.raw.data_sound)
-            try {
-                val startParts = editStartHour.text.toString().split(":")
-                val endParts = editEndHour.text.toString().split(":")
-                val intervalParts = editInterval.text.toString().split(":")
+        // Кнопка перехода в настройки с запросом пароля
+        settingsButton.setOnClickListener {
 
-                val startHour = startParts[0].toInt()
-                val endHour = endParts[0].toInt()
-                val intervalMinutes = intervalParts[0].toInt() * 60 + intervalParts[1].toInt()
+            // 🔊 Короткий звук при нажатии
+            playShortSound(R.raw.data_sound)
 
-                val token = editToken.text.toString()
-                val userId = editUserId.text.toString()
+            val passwordDialog = android.app.AlertDialog.Builder(this)
+            passwordDialog.setTitle("Access Settings")
+            passwordDialog.setMessage("Enter password to open tracker settings:")
 
-                // Сохраняем глобально
-                TEST_START_HOUR = startHour
-                TEST_END_HOUR = endHour
-                TEST_INTERVAL_MINUTES = intervalMinutes
-                TOKEN = token
-                USER_ID = userId
+            val input = android.widget.EditText(this)
+            input.inputType = android.text.InputType.TYPE_CLASS_TEXT or
+                    android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD
+            passwordDialog.setView(input)
 
-                // Запуск TrackingService
-                val intent = Intent(this, TrackingService::class.java).apply {
-                    putExtra(TrackingService.EXTRA_START_HOUR, startHour)
-                    putExtra(TrackingService.EXTRA_END_HOUR, endHour)
-                    putExtra(TrackingService.EXTRA_INTERVAL, intervalMinutes)
-                    putExtra(TrackingService.EXTRA_TOKEN, token)
-                    putExtra(TrackingService.EXTRA_USER_ID, userId)
-                }
+            passwordDialog.setPositiveButton("OK") { dialog, _ ->
+                val entered = input.text.toString()
+                val savedPassword = prefs.getString("PASSWORD", "12345")
+                if (entered == savedPassword) {
+                    // 🔊 Звук подтверждения
+                    playShortSound(R.raw.click_sound)
 
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    ContextCompat.startForegroundService(this, intent)
+                    val intent = Intent(this, SettingsActivity::class.java)
+                    startActivity(intent)
                 } else {
-                    startService(intent)
+                    Toast.makeText(this, "Wrong password!", Toast.LENGTH_SHORT).show()
                 }
-
-                Toast.makeText(this, "GPStraceeMe запущен с $startHour:00 до $endHour:00 каждые $intervalMinutes минут", Toast.LENGTH_LONG).show()
-
-            } catch (e: Exception) {
-                Toast.makeText(this, "Ошибка: проверьте формат времени HH:mm", Toast.LENGTH_LONG).show()
+                dialog.dismiss()
             }
+
+            passwordDialog.setNegativeButton("Cancel") { dialog, _ -> dialog.cancel() }
+            passwordDialog.show()
         }
-
-        // Регистрируем LocalBroadcast для получения последних сообщений
-        LocalBroadcastManager.getInstance(this).registerReceiver(
-            messageReceiver,
-            IntentFilter(TrackingService.ACTION_UPDATE_MESSAGE)
-        )
-    }
-
-    override fun onPause() {
-        super.onPause()
-        mediaPlayer.pause()
     }
 
     override fun onResume() {
         super.onResume()
-        mediaPlayer.start()
+        MusicPlayer.start(this) // 🔊 Singleton для фоновой музыки
+        loadDataToViews()
+        LocalBroadcastManager.getInstance(this)
+            .registerReceiver(jsonReceiver, IntentFilter(TrackingService.ACTION_UPDATE_MESSAGE))
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(messageReceiver)
-        mediaPlayer.release()
+    override fun onPause() {
+        super.onPause()
+        MusicPlayer.pause()
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(jsonReceiver)
     }
 
+    private fun loadDataToViews() {
+        val start = prefs.getString("START_HOUR", "08:00") ?: "08:00"
+        val end = prefs.getString("END_HOUR", "20:00") ?: "20:00"
+        val interval = prefs.getString("INTERVAL", "00:10") ?: "00:10"
+        val token = prefs.getString("TOKEN", "SECRET123") ?: "SECRET123"
+        val userId = prefs.getString("USER_ID", "YOUR_TRACKER_ID_123") ?: "YOUR_TRACKER_ID_123"
 
-    private fun playSound(resId: Int) {
-        val soundEffectPlayer = MediaPlayer.create(this, resId)
-        soundEffectPlayer.setOnCompletionListener { mp -> mp.release() }
-        soundEffectPlayer.start()
+        textStartHour.text = start
+        textEndHour.text = end
+        textInterval.text = interval
+        textToken.text = token
+        textUserId.text = userId
+
+        TEST_START_HOUR = start.split(":")[0].toIntOrNull() ?: 8
+        TEST_END_HOUR = end.split(":")[0].toIntOrNull() ?: 20
+        TEST_INTERVAL_MINUTES = interval.split(":").getOrNull(1)?.toIntOrNull() ?: 10
+        TOKEN = token
+        USER_ID = userId
     }
 
-    private fun setupTimeMask(editText: EditText) {
-        editText.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-            override fun afterTextChanged(s: Editable?) {
-                s?.let {
-                    if (it.length == 2 && !it.contains(":")) {
-                        it.append(":")
-                        editText.setSelection(it.length)
-                    }
-                }
+    private fun startTracker() {
+        try {
+            val intent = Intent(this, TrackingService::class.java).apply {
+                putExtra(TrackingService.EXTRA_START_HOUR, TEST_START_HOUR)
+                putExtra(TrackingService.EXTRA_END_HOUR, TEST_END_HOUR)
+                putExtra(TrackingService.EXTRA_INTERVAL, TEST_INTERVAL_MINUTES)
+                putExtra(TrackingService.EXTRA_TOKEN, TOKEN)
+                putExtra(TrackingService.EXTRA_USER_ID, USER_ID)
             }
-        })
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                ContextCompat.startForegroundService(this, intent)
+            } else {
+                startService(intent)
+            }
+
+            // 🔊 Звук запуска трекера
+            playShortSound(R.raw.data_sound)
+
+            Toast.makeText(
+                this,
+                "GPStraceeMe запущен с $TEST_START_HOUR:00 до $TEST_END_HOUR:00 каждые $TEST_INTERVAL_MINUTES минут",
+                Toast.LENGTH_LONG
+            ).show()
+
+        } catch (e: Exception) {
+            Toast.makeText(this, "Ошибка: проверьте параметры трекера", Toast.LENGTH_LONG).show()
+        }
+    }
+
+    // Вспомогательный метод для коротких звуков
+    private fun playShortSound(resId: Int) {
+        val sound = MediaPlayer.create(this, resId)
+        sound.setOnCompletionListener { it.release() }
+        sound.start()
     }
 }
+
+
+
+
+
+
+
 
 
 
