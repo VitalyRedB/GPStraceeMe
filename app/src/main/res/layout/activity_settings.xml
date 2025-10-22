@@ -184,6 +184,7 @@
                 android:padding="8dp" />
         </LinearLayout>
 
+
         <!-- Кнопка СТАРТ -->
         <Button
             android:id="@+id/button_start_tracker"
@@ -236,7 +237,7 @@
                     android:layout_weight="1"
                     android:text="SETTING PASS:"
                     android:textColor="@android:color/white"
-                    android:textSize="14sp" />
+                    android:textSize="20sp" />
 
                 <EditText
                     android:id="@+id/edit_password"
@@ -252,10 +253,64 @@
                     android:padding="8dp" />
             </LinearLayout>
 
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/headerTextView3"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Password messages"
+                    android:textColor="#A4C639"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:gravity="center"
+                    android:paddingTop="16dp"
+                    android:paddingBottom="16dp"
+                    android:shadowColor="#55000000"
+                    android:shadowDx="2"
+                    android:shadowDy="2"
+                    android:shadowRadius="1.5"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginEnd="8dp"
+                    android:background="@android:color/transparent" />
+
+                <!-- BACKGROUND MESSAGES -->
+                <!-- BACKGROUND MESSAGES -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="8dp"
+                    android:paddingEnd="8dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Background messages:"
+                        android:textColor="@android:color/white"
+                        android:textSize="18sp" />
+
+                    <Switch
+                        android:id="@+id/switch_background_messages"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:checked="true"
+                        android:showText="false"
+                        android:textColor="@android:color/white"
+                        android:thumbTint="@color/switch_thumb_color"
+                        android:trackTint="@color/switch_track_color"
+                        android:trackTintMode="src_in" />
+                </LinearLayout>
 
 
+
+            </LinearLayout>
         </LinearLayout>
-
     </LinearLayout>
 
     <!-- Подвал -->

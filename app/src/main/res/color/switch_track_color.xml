@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Активный трек -->
+    <item android:color="#334CAF50" android:state_checked="true" />
+    <!-- Неактивный трек -->
+    <item android:color="#333333" />
+</selector>

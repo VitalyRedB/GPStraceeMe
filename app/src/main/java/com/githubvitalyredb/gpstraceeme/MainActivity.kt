@@ -1,9 +1,7 @@
 package com.githubvitalyredb.gpstraceeme
 
-import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
 import android.content.SharedPreferences
 import android.media.MediaPlayer
 import android.os.Build
@@ -26,6 +24,7 @@ class MainActivity : AppCompatActivity() {
         var TEST_INTERVAL_MINUTES = 10
         var TOKEN = "SECRET123"
         var USER_ID = "KOD_ID_123"
+        const val EXTRA_BACKGROUND_MESSAGES = "EXTRA_BACKGROUND_MESSAGES" // 🔹 вынесли константу
     }
 
     private lateinit var textStartHour: TextView
@@ -39,11 +38,11 @@ class MainActivity : AppCompatActivity() {
     private lateinit var prefs: SharedPreferences
 
     // BroadcastReceiver для JSON сообщений
-    private val jsonReceiver = object : BroadcastReceiver() {
+    private val jsonReceiver = object : android.content.BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             val message = intent?.getStringExtra(TrackingService.EXTRA_JSON_MESSAGE) ?: "---"
             lastMessageTextView.text = "Last server message: $message"
-            lastMessageTextView.setTextColor(android.graphics.Color.YELLOW) // 🔔 жёлтый цвет
+            lastMessageTextView.setTextColor(android.graphics.Color.YELLOW)
         }
     }
 
@@ -63,23 +62,18 @@ class MainActivity : AppCompatActivity() {
         startButton = findViewById(R.id.button_start_tracker)
         settingsButton = findViewById(R.id.settingsButton)
 
-        // Загрузка сохранённых значений
         loadDataToViews()
 
-        // Анимация для developerImageView
+        // Анимация developerImageView
         val developerImageView = findViewById<ImageView>(R.id.developerImageView)
         val anim = AnimationUtils.loadAnimation(this, R.anim.rotate_and_scale_animation)
         developerImageView.startAnimation(anim)
 
-        // Кнопка запуска трекера
         startButton.setOnClickListener { startTracker() }
 
-        // Кнопка перехода в настройки с запросом пароля
+        // Кнопка настроек с проверкой пароля
         settingsButton.setOnClickListener {
-
-            // 🔊 Короткий звук при нажатии
             playShortSound(R.raw.data_sound)
-
             val passwordDialog = android.app.AlertDialog.Builder(this)
             passwordDialog.setTitle("Access Settings")
             passwordDialog.setMessage("Enter password to open tracker settings:")
@@ -93,17 +87,13 @@ class MainActivity : AppCompatActivity() {
                 val entered = input.text.toString()
                 val savedPassword = prefs.getString("PASSWORD", "12345")
                 if (entered == savedPassword) {
-                    // 🔊 Звук подтверждения
                     playShortSound(R.raw.click_sound)
-
-                    val intent = Intent(this, SettingsActivity::class.java)
-                    startActivity(intent)
+                    startActivity(Intent(this, SettingsActivity::class.java))
                 } else {
                     Toast.makeText(this, "Wrong password!", Toast.LENGTH_SHORT).show()
                 }
                 dialog.dismiss()
             }
-
             passwordDialog.setNegativeButton("Cancel") { dialog, _ -> dialog.cancel() }
             passwordDialog.show()
         }
@@ -111,10 +101,10 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        MusicPlayer.start(this) // 🔊 Singleton для фоновой музыки
+        MusicPlayer.start(this)
         loadDataToViews()
         LocalBroadcastManager.getInstance(this)
-            .registerReceiver(jsonReceiver, IntentFilter(TrackingService.ACTION_UPDATE_MESSAGE))
+            .registerReceiver(jsonReceiver, android.content.IntentFilter(TrackingService.ACTION_UPDATE_MESSAGE))
     }
 
     override fun onPause() {
@@ -145,12 +135,15 @@ class MainActivity : AppCompatActivity() {
 
     private fun startTracker() {
         try {
+            val backgroundMessagesEnabled = prefs.getBoolean("background_messages_enabled", true)
+
             val intent = Intent(this, TrackingService::class.java).apply {
                 putExtra(TrackingService.EXTRA_START_HOUR, TEST_START_HOUR)
                 putExtra(TrackingService.EXTRA_END_HOUR, TEST_END_HOUR)
                 putExtra(TrackingService.EXTRA_INTERVAL, TEST_INTERVAL_MINUTES)
                 putExtra(TrackingService.EXTRA_TOKEN, TOKEN)
                 putExtra(TrackingService.EXTRA_USER_ID, USER_ID)
+                putExtra(EXTRA_BACKGROUND_MESSAGES, backgroundMessagesEnabled) // 🔹 передаём флаг
             }
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -159,27 +152,27 @@ class MainActivity : AppCompatActivity() {
                 startService(intent)
             }
 
-            // 🔊 Звук запуска трекера
-            playShortSound(R.raw.data_sound)
-
+            val bgStatus = if (backgroundMessagesEnabled) "уведомления ВКЛ" else "уведомления ВЫКЛ"
             Toast.makeText(
                 this,
-                "GPStraceeMe запущен с $TEST_START_HOUR:00 до $TEST_END_HOUR:00 каждые $TEST_INTERVAL_MINUTES минут",
+                "GPStraceeMe запущен ($bgStatus)\nС $TEST_START_HOUR:00 до $TEST_END_HOUR:00 каждые $TEST_INTERVAL_MINUTES мин.",
                 Toast.LENGTH_LONG
             ).show()
+
+            playShortSound(R.raw.data_sound)
 
         } catch (e: Exception) {
             Toast.makeText(this, "Ошибка: проверьте параметры трекера", Toast.LENGTH_LONG).show()
         }
     }
 
-    // Вспомогательный метод для коротких звуков
     private fun playShortSound(resId: Int) {
         val sound = MediaPlayer.create(this, resId)
         sound.setOnCompletionListener { it.release() }
         sound.start()
     }
 }
+
 
 
 
