@@ -40,17 +40,18 @@
             android:textSize="18sp"
             android:textStyle="bold" />
 
-        <TextView
+        <com.githubvitalyredb.gpstraceeme.MarqueeTextView
+            android:id="@+id/marqueeText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Vitaly Kukoba +38 (067) 413-09-22"
+            android:text="                  Vitaly Kukoba +38(067)41309tutu Kukoba_Vitaly@ukr.net"
             android:textColor="#000000"
             android:textSize="14sp" />
 
-        <TextView
+        <com.githubvitalyredb.gpstraceeme.MarqueeTextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="website and application development"
+            android:text="               Website and application development."
             android:textColor="#000000"
             android:textSize="14sp" />
     </LinearLayout>
