@@ -19,6 +19,11 @@ import androidx.appcompat.app.AppCompatActivity
  */
 class SettingsActivity : AppCompatActivity() {
 
+
+    private lateinit var daysManager: DaysManager
+    private lateinit var daysContainer: LinearLayout
+
+
     // 🔧 Элементы интерфейса
     private lateinit var editStartHour: EditText
     private lateinit var editEndHour: EditText
@@ -36,6 +41,11 @@ class SettingsActivity : AppCompatActivity() {
 
         // 📂 Загружаем настройки приложения
         prefs = getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
+
+        daysContainer = findViewById(R.id.daysContainer)
+        daysManager = DaysManager(this)
+        daysManager.drawDays(daysContainer, isEditable = true) // кликаем для изменения
+
 
         // 🧩 Привязываем элементы интерфейса к XML
         editStartHour = findViewById(R.id.edit_start_hour)
@@ -127,6 +137,8 @@ class SettingsActivity : AppCompatActivity() {
             .putString("USER_ID", newUserId)
             .putString("PASSWORD", newPassword)
             .apply()
+
+        daysManager.saveDays()
 
         Toast.makeText(this, "Настройки сохранены", Toast.LENGTH_SHORT).show()
 

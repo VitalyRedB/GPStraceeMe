@@ -40,6 +40,43 @@
                 android:layout_marginEnd="8dp"
                 android:background="@android:color/transparent" />
 
+
+            <!-- Active days -->
+            <LinearLayout
+                android:id="@+id/rootMain"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="8dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Active days :"
+                    android:textColor="@android:color/white"
+                    android:textSize="14sp"
+                    android:ellipsize="end"
+                    android:singleLine="true"
+                    android:layout_marginEnd="8dp"/>
+
+                <HorizontalScrollView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:fillViewport="false"
+                    android:scrollbars="none">
+
+                    <LinearLayout
+                        android:id="@+id/daysContainer"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal" />
+                </HorizontalScrollView>
+
+            </LinearLayout>
+
+
             <!-- START_HOUR -->
             <LinearLayout
                 android:layout_width="match_parent"

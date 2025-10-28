@@ -14,8 +14,16 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import android.widget.LinearLayout
 
 class MainActivity : AppCompatActivity() {
+
+
+    private lateinit var daysManager: DaysManager
+    private lateinit var daysContainer: LinearLayout
+    // создаём словарь: ключ - краткое имя дня, значение - 1 (активный) или 0 (неактивный)
+    private val daysMap: MutableMap<String, Int> = mutableMapOf(
+        "Mon" to 1, "Tue" to 1, "Wed" to 1, "Thu" to 1, "Fri" to 1, "Sat" to 1, "Sun" to 1)
 
     companion object {
         private const val PREFS_NAME = "AppPrefs"
@@ -50,7 +58,15 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+
+
         prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+
+
+        daysContainer = findViewById(R.id.daysContainer)
+        daysManager = DaysManager(this)
+        daysManager.drawDays(daysContainer) // только просмотр
+
 
         // Инициализация Views
         textStartHour = findViewById(R.id.text_start_hour)
@@ -61,6 +77,7 @@ class MainActivity : AppCompatActivity() {
         lastMessageTextView = findViewById(R.id.last_message_textview)
         startButton = findViewById(R.id.button_start_tracker)
         settingsButton = findViewById(R.id.settingsButton)
+
 
         loadDataToViews()
 
@@ -101,6 +118,10 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+
+        daysManager.drawDays(daysContainer) // обновление цветов после изменений
+
+
         MusicPlayer.start(this)
         loadDataToViews()
         LocalBroadcastManager.getInstance(this)
