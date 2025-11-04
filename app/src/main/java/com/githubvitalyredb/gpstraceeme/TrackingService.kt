@@ -94,6 +94,15 @@ class TrackerService : Service(), LocationHelper.OnLocationReceivedCallback {
             // Сброс таймера periodicTask
             handler.removeCallbacks(periodicTask)
             handler.postDelayed(periodicTask, periodicInterval)
+
+            try {
+                val mp = MediaPlayer.create(this, R.raw.click_sound)
+                mp.setOnCompletionListener { it.release() }
+                mp.start()
+            } catch (e: Exception) {
+                Log.w(TAG, "Ошибка при воспроизведении звука: ${e.message}")
+            }
+
             return START_STICKY
         }
 
@@ -149,14 +158,6 @@ class TrackerService : Service(), LocationHelper.OnLocationReceivedCallback {
     override fun onLocationReceived(location: Location) {
         locationHelper.stopLocationUpdates()
         Log.i(TAG, "Координаты: ${location.latitude}, ${location.longitude}")
-
-        try {
-            val mp = MediaPlayer.create(this, R.raw.click_sound)
-            mp.setOnCompletionListener { it.release() }
-            mp.start()
-        } catch (e: Exception) {
-            Log.w(TAG, "Ошибка при воспроизведении звука: ${e.message}")
-        }
 
         gpsTrackerManager.sendGpsPoint(this, location.latitude, location.longitude)
     }
