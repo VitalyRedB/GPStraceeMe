@@ -67,6 +67,7 @@ class TrackerService : Service(), LocationHelper.OnLocationReceivedCallback {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.d(TAG, "onStartCommand: Intent получен. startId=$startId")
 
+        // 🔹 Обновляем настройки из MainActivity или из SharedPreferences
         intent?.let {
             startHour = it.getIntExtra(EXTRA_START_HOUR, startHour)
             endHour = it.getIntExtra(EXTRA_END_HOUR, endHour)
@@ -83,6 +84,14 @@ class TrackerService : Service(), LocationHelper.OnLocationReceivedCallback {
             Log.d(TAG, "Параметры из MainActivity: Start=$startHour, End=$endHour, Interval=$intervalMinutes, Token=${TOKEN.take(4)}..., UserID=$USER_ID")
         }
 
+        // 🔹 Обновляем gpsTrackerManager с актуальными TOKEN и USER_ID
+        gpsTrackerManager = GpsTrackerManager(TOKEN, USER_ID) { json ->
+            val broadcastIntent = Intent(ACTION_UPDATE_MESSAGE).apply {
+                putExtra(EXTRA_JSON_MESSAGE, json)
+            }
+            LocalBroadcastManager.getInstance(this).sendBroadcast(broadcastIntent)
+        }
+
         // 🔹 Обновляем уведомление
         (getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager)
             ?.notify(NOTIFICATION_ID, createNotification())
@@ -90,10 +99,15 @@ class TrackerService : Service(), LocationHelper.OnLocationReceivedCallback {
         // 🔹 Экстренное снятие координат по кнопке СТАРТ
         if (intent?.action == ACTION_REQUEST_IMMEDIATE_LOCATION) {
             Log.d(TAG, "Экстренное снятие координат по кнопке СТАРТ")
+
+            // Снимаем координаты
             locationHelper.startLocationUpdates(this)
-            // Сброс таймера periodicTask
+
+            // Сброс старого periodicTask и перезапуск с новым интервалом
             handler.removeCallbacks(periodicTask)
+            periodicRunning = false
             handler.postDelayed(periodicTask, periodicInterval)
+            periodicRunning = true
 
             try {
                 val mp = MediaPlayer.create(this, R.raw.click_sound)
@@ -106,18 +120,19 @@ class TrackerService : Service(), LocationHelper.OnLocationReceivedCallback {
             return START_STICKY
         }
 
-        // 🔹 Запуск periodicTask, если ещё не запущен
+        // 🔹 Стандартный запуск periodicTask (если ещё не запущен)
         if (!periodicRunning) {
-            periodicRunning = true
-            handler.removeCallbacks(periodicTask)
+            Log.d(TAG, "Запуск periodicTask")
+            handler.removeCallbacks(periodicTask) // на всякий случай
             handler.post(periodicTask)
-            Log.d(TAG, "Периодическая задача запущена в onStartCommand.")
+            periodicRunning = true
         } else {
-            Log.d(TAG, "Периодическая задача уже работает — не перезапускаем.")
+            Log.d(TAG, "periodicTask уже запущен, просто обновлены настройки")
         }
 
         return START_STICKY
     }
+
 
     private val periodicTask = object : Runnable {
         override fun run() {

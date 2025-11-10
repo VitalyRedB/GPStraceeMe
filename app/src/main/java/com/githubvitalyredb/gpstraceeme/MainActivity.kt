@@ -91,6 +91,29 @@ class MainActivity : AppCompatActivity() {
         loadDataToViews()
         updateStartButtonState()
 
+        // ✅ Проверка, нужно ли перезапустить трекер с новыми настройками
+        if (isServiceRunning(TrackerService::class.java)) {
+            Log.d(TAG, "Настройки изменены — перезапускаем TrackerService с новыми данными")
+
+            val intent = Intent(this, TrackerService::class.java).apply {
+                putExtra(TrackerService.EXTRA_START_HOUR, TEST_START_HOUR)
+                putExtra(TrackerService.EXTRA_END_HOUR, TEST_END_HOUR)
+                putExtra(TrackerService.EXTRA_INTERVAL, TEST_INTERVAL_MINUTES)
+                putExtra(TrackerService.EXTRA_TOKEN, TOKEN)
+                putExtra(TrackerService.EXTRA_USER_ID, USER_ID)
+            }
+
+            // Останавливаем и сразу запускаем снова
+            stopService(intent)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+                ContextCompat.startForegroundService(this, intent)
+            else
+                startService(intent)
+
+            Toast.makeText(this, "Трекер перезапущен с обновлёнными настройками", Toast.LENGTH_SHORT).show()
+        }
+
+
         LocalBroadcastManager.getInstance(this).registerReceiver(
             jsonReceiver,
             android.content.IntentFilter(TrackerService.ACTION_UPDATE_MESSAGE)
