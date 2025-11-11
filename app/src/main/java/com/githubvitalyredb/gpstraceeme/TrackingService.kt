@@ -22,7 +22,7 @@ class TrackerService : Service(), LocationHelper.OnLocationReceivedCallback {
     private val TAG = "TrackerService"
 
     private lateinit var locationHelper: LocationHelper
-    private lateinit var gpsTrackerManager: GpsTrackerManager
+    private lateinit var gpsTrackerManager: GpsTrackerManager111125
     private val handler = Handler(Looper.getMainLooper())
 
     private var periodicInterval: Long = TimeUnit.MINUTES.toMillis(10)
@@ -42,7 +42,7 @@ class TrackerService : Service(), LocationHelper.OnLocationReceivedCallback {
             locationHelper = LocationHelper(this, null)
             loadSettings()
 
-            gpsTrackerManager = GpsTrackerManager(TOKEN, USER_ID) { json ->
+            gpsTrackerManager = GpsTrackerManager111125(TOKEN, USER_ID) { json ->
                 val intent = Intent(ACTION_UPDATE_MESSAGE).apply {
                     putExtra(EXTRA_JSON_MESSAGE, json)
                 }
@@ -85,7 +85,7 @@ class TrackerService : Service(), LocationHelper.OnLocationReceivedCallback {
         }
 
         // 🔹 Обновляем gpsTrackerManager с актуальными TOKEN и USER_ID
-        gpsTrackerManager = GpsTrackerManager(TOKEN, USER_ID) { json ->
+        gpsTrackerManager = GpsTrackerManager111125(TOKEN, USER_ID) { json ->
             val broadcastIntent = Intent(ACTION_UPDATE_MESSAGE).apply {
                 putExtra(EXTRA_JSON_MESSAGE, json)
             }
