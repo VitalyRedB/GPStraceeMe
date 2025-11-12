@@ -19,11 +19,6 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.IOException
 
-/**
- * SendService — отвечает за повторную отправку сохранённых JSON-точек (temp list).
- * Формат точек: строка JSON, совместимая с тем, что отправляет приложение:
- * {"date":"2025-11-11","lat":37.4219983,"lon":-122.084,"time":"08:27:52","token":"SECRET123","user_id":"RedMi5_emu3"}
- */
 class SendService : Service() {
 
     companion object {
@@ -32,22 +27,19 @@ class SendService : Service() {
         private const val KEY_TEMP_LIST = "temp_list"
         @Volatile private var isRunning = false
 
-        /**
-         * Добавляет JSON-строку точки в локальную очередь (SharedPreferences).
-         * Вызывается из места, где формируется JSON (например, GpsTrackerManager).
-         */
+        /** Добавляет JSON-точку в очередь */
         fun addPendingPoint(context: Context, jsonPoint: String) {
             try {
                 val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
                 val gson = Gson()
                 val type = object : TypeToken<MutableList<String>>() {}.type
-                val currentList: MutableList<String> =
+                val list: MutableList<String> =
                     gson.fromJson(prefs.getString(KEY_TEMP_LIST, "[]"), type) ?: mutableListOf()
-                currentList.add(jsonPoint)
-                prefs.edit().putString(KEY_TEMP_LIST, gson.toJson(currentList)).apply()
-                Log.d(TAG, "Добавлена точка в очередь — всего: ${currentList.size}")
+                list.add(jsonPoint)
+                prefs.edit().putString(KEY_TEMP_LIST, gson.toJson(list)).apply()
+                Log.d(TAG, "Добавлена точка в очередь — всего: ${list.size}")
             } catch (e: Exception) {
-                Log.e(TAG, "addPendingPoint error: ${e.message}", e)
+                Log.e(TAG, "Ошибка при добавлении точки: ${e.message}", e)
             }
         }
     }
@@ -62,18 +54,18 @@ class SendService : Service() {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 processPendingPoints()
+            } catch (e: Exception) {
+                Log.e(TAG, "❌ Ошибка в processPendingPoints: ${e.message}", e)
             } finally {
                 isRunning = false
+                Log.d(TAG, "isRunning сброшен → сервис завершает работу")
                 stopSelf()
             }
         }
         return START_NOT_STICKY
     }
 
-    /**
-     * Основная логика: читаем очередь (список JSON-строк),
-     * если нет интернета — выходим, если есть — отправляем по очереди.
-     */
+    /** Основная логика */
     private fun processPendingPoints() {
         val prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         val gson = Gson()
@@ -87,44 +79,38 @@ class SendService : Service() {
         }
 
         if (!isInternetAvailable()) {
-            Log.d(TAG, "Нет интернета — откладываем отправку (${tempList.size})")
+            Log.d(TAG, "Нет интернета — откладываем (${tempList.size})")
             return
         }
 
-        Log.d(TAG, "Попытка отправки ${tempList.size} точек")
+        Log.d(TAG, "Начинаем отправку ${tempList.size} точек")
 
         val iterator = tempList.iterator()
         var successCount = 0
 
         while (iterator.hasNext()) {
-            val jsonPoint = iterator.next()
-
-            val success = sendJsonToServer(jsonPoint)
+            val json = iterator.next()
+            val success = sendJsonToServer(json)
             if (success) {
                 iterator.remove()
                 successCount++
-                Log.d(TAG, "Точка отправлена успешно, осталось: ${tempList.size}")
+                Log.d(TAG, "✅ Точка отправлена, осталось: ${tempList.size}")
             } else {
-                Log.e(TAG, "Ошибка при отправке точки — прерываем цикл")
+                Log.w(TAG, "⚠️ Ошибка при отправке — выходим из цикла")
                 break
             }
         }
 
-        // Сохраняем оставшиеся точки обратно в prefs
         prefs.edit().putString(KEY_TEMP_LIST, gson.toJson(tempList)).apply()
 
-        // Если успешно отправили хотя бы одну и очередь пуста — проигрываем звук
         if (successCount > 0 && tempList.isEmpty()) {
             playSuccessSound()
         }
 
-        Log.d(TAG, "processPendingPoints завершен. Успешно: $successCount, Осталось: ${tempList.size}")
+        Log.d(TAG, "Отправка завершена. Успешно: $successCount, Осталось: ${tempList.size}")
     }
 
-    /**
-     * Отправляет JSON напрямую на сервер. Возвращает true при успешном ответе (2xx).
-     * Используем jsonString как тело запроса.
-     */
+    /** Отправка JSON на сервер */
     private fun sendJsonToServer(jsonString: String): Boolean {
         val client = OkHttpClient()
         val JSON_MEDIA = "application/json; charset=utf-8".toMediaType()
@@ -138,29 +124,30 @@ class SendService : Service() {
         return try {
             client.newCall(request).execute().use { response ->
                 if (response.isSuccessful) {
-                    Log.i(TAG, "Точка успешно отправлена: ${response.code}")
+                    Log.i(TAG, "Отправлено успешно: ${response.code}")
                     true
                 } else {
-                    Log.e(TAG, "Ошибка сервера: ${response.code} ${response.message}")
+                    Log.e(TAG, "Ошибка ответа: ${response.code} ${response.message}")
                     false
                 }
             }
         } catch (e: IOException) {
-            Log.e(TAG, "Network error при отправке: ${e.message}")
+            Log.e(TAG, "Network error: ${e.message}")
             false
         } catch (e: Exception) {
-            Log.e(TAG, "Unexpected error при отправке: ${e.message}")
+            Log.e(TAG, "Unexpected error: ${e.message}")
             false
         }
     }
 
-    /** Проверяем наличие интернета (Wi-Fi или мобильный) */
+    /** Проверка интернета */
     private fun isInternetAvailable(): Boolean {
         val cm = getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager ?: return false
         val network = cm.activeNetwork ?: return false
         val caps = cm.getNetworkCapabilities(network) ?: return false
-        return caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
-                && (caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) || caps.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR))
+        return caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
+                (caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)
+                        || caps.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR))
     }
 
     private fun playSuccessSound() {
@@ -168,7 +155,6 @@ class SendService : Service() {
             val mp = MediaPlayer.create(this, R.raw.send_ok)
             mp.setOnCompletionListener { it.release() }
             mp.start()
-            Log.d(TAG, "✅ Все накопленные данные отправлены — звук проигран")
         } catch (e: Exception) {
             Log.w(TAG, "Ошибка при воспроизведении звука: ${e.message}")
         }
@@ -176,4 +162,5 @@ class SendService : Service() {
 
     override fun onBind(intent: Intent?): IBinder? = null
 }
+
 
