@@ -27,6 +27,9 @@ class SendService : Service() {
         private const val KEY_TEMP_LIST = "temp_list"
         @Volatile private var isRunning = false
 
+
+
+
         /** Добавляет JSON-точку в очередь */
         fun addPendingPoint(context: Context, jsonPoint: String) {
             try {
@@ -37,7 +40,7 @@ class SendService : Service() {
                     gson.fromJson(prefs.getString(KEY_TEMP_LIST, "[]"), type) ?: mutableListOf()
                 list.add(jsonPoint)
                 prefs.edit().putString(KEY_TEMP_LIST, gson.toJson(list)).apply()
-                Log.d(TAG, "Добавлена точка в очередь — всего: ${list.size}")
+                Log.d(TAG, "Добавлена точка в очередь — всего123: ${list.size}")
             } catch (e: Exception) {
                 Log.e(TAG, "Ошибка при добавлении точки: ${e.message}", e)
             }
@@ -116,32 +119,49 @@ class SendService : Service() {
         val JSON_MEDIA = "application/json; charset=utf-8".toMediaType()
         val body = jsonString.toRequestBody(JSON_MEDIA)
 
+        val url = "https://gpstrackerflow.pythonanywhere.com/api/add_point"
+
+        Log.e(TAG, "====== ОТПРАВКА НА СЕРВЕР ======")
+        Log.e(TAG, "URL: $url")
+        Log.e(TAG, "JSON BODY: $jsonString")
+
         val request = Request.Builder()
-            .url("https://redburngpscontrol.pythonanywhere.com/api/add_point")
+            .url(url)
             .post(body)
             .build()
 
         return try {
             client.newCall(request).execute().use { response ->
+
+                val responseBody = response.body?.string()
+
+                Log.e(TAG, "RESPONSE CODE: ${response.code}")
+                Log.e(TAG, "RESPONSE MESSAGE: ${response.message}")
+                Log.e(TAG, "RESPONSE BODY: $responseBody")
+
                 if (response.isSuccessful) {
-                    Log.i(TAG, "Отправлено успешно: ${response.code}")
                     true
                 } else {
-                    Log.e(TAG, "Ошибка ответа: ${response.code} ${response.message}")
                     false
                 }
             }
         } catch (e: IOException) {
-            Log.e(TAG, "Network error: ${e.message}")
+            Log.e(TAG, "Network error: ${e.message}", e)
             false
         } catch (e: Exception) {
-            Log.e(TAG, "Unexpected error: ${e.message}")
+            Log.e(TAG, "Unexpected error: ${e.message}", e)
             false
         }
     }
 
+
+
+
     /** Проверка интернета */
     private fun isInternetAvailable(): Boolean {
+
+        Log.i("SendService", "Проверка интернета 123")
+
         val cm = getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager ?: return false
         val network = cm.activeNetwork ?: return false
         val caps = cm.getNetworkCapabilities(network) ?: return false

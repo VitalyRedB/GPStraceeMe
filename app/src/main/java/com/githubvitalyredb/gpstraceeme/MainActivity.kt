@@ -16,6 +16,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 
 class MainActivity : AppCompatActivity() {
 
@@ -182,6 +184,7 @@ class MainActivity : AppCompatActivity() {
             putExtra(TrackerService.EXTRA_TOKEN, TOKEN)
             putExtra(TrackerService.EXTRA_USER_ID, USER_ID)
         }
+        logPendingPoints(this) // ВРЕМЕННЫЙ ТЕСТ ПЯМЯТИ
 
         if (isServiceRunning(TrackerService::class.java)) {
             // 🔹 Сервис работает → мгновенное снятие координат
@@ -245,6 +248,37 @@ class MainActivity : AppCompatActivity() {
         dialog.setNegativeButton("Cancel") { d, _ -> d.cancel() }
         dialog.show()
     }
+    private fun logPendingPoints(context: Context) {
+        try {
+            val prefs = context.getSharedPreferences("send_prefs", Context.MODE_PRIVATE)
+            val json = prefs.getString("temp_list", null)
+
+            Log.d("TEST_PREFS", "Сырой JSON из SharedPreferences: $json")
+
+            if (json.isNullOrEmpty()) {
+                Log.d("TEST_PREFS", "Офлайн-точек нет (пустая строка или null).")
+                return
+            }
+
+            val gson = Gson()
+            val type = object : TypeToken<List<String>>() {}.type
+            val list: List<String> = gson.fromJson(json, type) ?: emptyList()
+
+            if (list.isEmpty()) {
+                Log.d("TEST_PREFS", "Офлайн-точек нет (список пуст после парсинга).")
+            } else {
+                Log.d("TEST_PREFS", "Всего офлайн-точек: ${list.size}")
+                list.forEachIndexed { i, point ->
+                    Log.d("TEST_PREFS", "Точка ${i + 1}: $point")
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("TEST_PREFS", "Ошибка при чтении офлайн-точек: ${e.message}", e)
+        }
+    }
+
+
+
 }
 
 

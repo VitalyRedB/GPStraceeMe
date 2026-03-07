@@ -35,7 +35,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="© RedBurn LCC 2025 UA"
+            android:text="© RedBurn 2025 UA LTD"
             android:textColor="#fc0b03"
             android:textSize="18sp"
             android:textStyle="bold" />
@@ -44,7 +44,7 @@
             android:id="@+id/marqueeText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="                  Vitaly Kukoba +38(067)41309tutu Kukoba_Vitaly@ukr.net"
+            android:text="                  Vitaly Kukoba +38(067)41309tutu RedBurn2025@gmail.com"
             android:textColor="#000000"
             android:textSize="14sp" />
 
