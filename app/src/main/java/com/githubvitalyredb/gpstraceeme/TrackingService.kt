@@ -30,7 +30,7 @@ class TrackerService : Service(), LocationHelper.OnLocationReceivedCallback {
     private var startHour = 8
     private var endHour = 20
     private var TOKEN = "SECRET123"
-    private var USER_ID = "KOD_ID_123"
+    private var TRACKER_NAME = "KOD_ID_123"
     private var backgroundMessagesEnabled = true
     private var daysMap: MutableMap<String, Int> = mutableMapOf()
     private var periodicRunning = false
@@ -42,7 +42,7 @@ class TrackerService : Service(), LocationHelper.OnLocationReceivedCallback {
             locationHelper = LocationHelper(this, null)
             loadSettings()
 
-            gpsTrackerManager = GpsTrackerManager(TOKEN, USER_ID) { json ->
+            gpsTrackerManager = GpsTrackerManager(TOKEN, TRACKER_NAME) { json ->
                 val intent = Intent(ACTION_UPDATE_MESSAGE).apply {
                     putExtra(EXTRA_JSON_MESSAGE, json)
                 }
@@ -77,15 +77,15 @@ class TrackerService : Service(), LocationHelper.OnLocationReceivedCallback {
             )
             periodicInterval = TimeUnit.MINUTES.toMillis(intervalMinutes.toLong())
             TOKEN = it.getStringExtra(EXTRA_TOKEN) ?: TOKEN
-            USER_ID = it.getStringExtra(EXTRA_USER_ID) ?: USER_ID
+            TRACKER_NAME = it.getStringExtra(EXTRA_TRACKER_NAME) ?: TRACKER_NAME
             backgroundMessagesEnabled =
                 it.getBooleanExtra(EXTRA_BACKGROUND_MESSAGES, backgroundMessagesEnabled)
 
-            Log.d(TAG, "Параметры из MainActivity: Start=$startHour, End=$endHour, Interval=$intervalMinutes, Token=${TOKEN.take(4)}..., UserID=$USER_ID")
+            Log.d(TAG, "Параметры из MainActivity: Start=$startHour, End=$endHour, Interval=$intervalMinutes, Token=${TOKEN.take(4)}..., UserTrackerName=$TRACKER_NAME")
         }
 
         // 🔹 Обновляем gpsTrackerManager с актуальными TOKEN и USER_ID
-        gpsTrackerManager = GpsTrackerManager(TOKEN, USER_ID) { json ->
+        gpsTrackerManager = GpsTrackerManager(TOKEN, TRACKER_NAME) { json ->
             val broadcastIntent = Intent(ACTION_UPDATE_MESSAGE).apply {
                 putExtra(EXTRA_JSON_MESSAGE, json)
             }
@@ -244,7 +244,7 @@ class TrackerService : Service(), LocationHelper.OnLocationReceivedCallback {
 
         backgroundMessagesEnabled = prefs.getBoolean("background_messages_enabled", true)
         TOKEN = prefs.getString("TOKEN", TOKEN) ?: TOKEN
-        USER_ID = prefs.getString("USER_ID", USER_ID) ?: USER_ID
+        TRACKER_NAME = prefs.getString("TRACKER_NAME", TRACKER_NAME) ?: TRACKER_NAME
 
         val json = prefs.getString("daysMap", null)
         daysMap = if (json != null) {
@@ -271,7 +271,7 @@ class TrackerService : Service(), LocationHelper.OnLocationReceivedCallback {
         const val EXTRA_END_HOUR = "EXTRA_END_HOUR"
         const val EXTRA_INTERVAL = "EXTRA_INTERVAL"
         const val EXTRA_TOKEN = "EXTRA_TOKEN"
-        const val EXTRA_USER_ID = "EXTRA_USER_ID"
+        const val EXTRA_TRACKER_NAME = "EXTRA_TRACKER_NAME"
         const val EXTRA_BACKGROUND_MESSAGES = "EXTRA_BACKGROUND_MESSAGES"
 
         const val ACTION_REQUEST_IMMEDIATE_LOCATION = "com.githubvitalyredb.gpstraceeme.ACTION_REQUEST_IMMEDIATE_LOCATION"

@@ -47,6 +47,12 @@
             android:exported="false"
             android:foregroundServiceType="location|dataSync" />
 
+        <service
+            android:name=".SendService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
+
     </application>
 </manifest>
 

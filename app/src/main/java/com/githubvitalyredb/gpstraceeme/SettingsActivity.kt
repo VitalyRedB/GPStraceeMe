@@ -11,12 +11,16 @@ import androidx.appcompat.app.AppCompatActivity
 
 /**
  * Экран настроек трекера.
+ *
  * Позволяет задать:
- *  – время начала и окончания трекинга
- *  – интервал отправки данных
- *  – токен, ID пользователя и пароль
- *  – включение/выключение фоновых сообщений (уведомлений)
+ * – время начала и окончания трекинга
+ * – интервал отправки координат
+ * – TOKEN сервера
+ * – TRACKER_NAME (имя трекера)
+ * – пароль доступа
+ * – режим работы (MANUAL / AUTO)
  */
+
 class SettingsActivity : AppCompatActivity() {
 
 
@@ -29,10 +33,9 @@ class SettingsActivity : AppCompatActivity() {
     private lateinit var editEndHour: EditText
     private lateinit var editInterval: EditText
     private lateinit var editToken: EditText
-    private lateinit var editUserId: EditText
+    private lateinit var editTrackerName: EditText
     private lateinit var editPassword: EditText
     private lateinit var buttonSaveExit: Button
-    private lateinit var switchBackgroundMessages: Switch
     private lateinit var prefs: SharedPreferences
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -52,10 +55,32 @@ class SettingsActivity : AppCompatActivity() {
         editEndHour = findViewById(R.id.edit_end_hour)
         editInterval = findViewById(R.id.edit_interval)
         editToken = findViewById(R.id.edit_token)
-        editUserId = findViewById(R.id.edit_user_id)
+        editTrackerName = findViewById(R.id.edit_tracker_name)
         editPassword = findViewById(R.id.edit_password)
         buttonSaveExit = findViewById(R.id.button_start_tracker)
-        switchBackgroundMessages = findViewById(R.id.switch_background_messages)
+
+
+        // 🌙 Инициализация переключателя настрое АВТО/Ручная
+        val radioGroup = findViewById<RadioGroup>(R.id.radio_tracking_mode)
+
+        radioGroup.setOnCheckedChangeListener { _, checkedId ->
+
+            when (checkedId) {
+
+                R.id.radio_manual -> {
+                    //Log.d("TRACKING_MODE", "Manual mode")
+                    prefs.edit().putString("TRACKING_MODE", "MANUAL").apply()
+                }
+
+                R.id.radio_auto -> {
+                    //Log.d("TRACKING_MODE", "Auto mode")
+                    prefs.edit().putString("TRACKING_MODE", "AUTO").apply()
+                }
+            }
+        }
+
+
+
 
         // 💫 Анимация вращения логотипа разработчика
         val developerImageView = findViewById<ImageView>(R.id.developerImageView)
@@ -65,32 +90,6 @@ class SettingsActivity : AppCompatActivity() {
         // ⏳ Загружаем сохранённые значения в поля
         loadData()
 
-        // 🌙 Инициализация переключателя фоновых уведомлений
-        val bgEnabled = prefs.getBoolean("background_messages_enabled", true)
-        switchBackgroundMessages.isChecked = bgEnabled
-
-        // 🎚️ Обработчик переключения
-        switchBackgroundMessages.setOnCheckedChangeListener { _, isChecked ->
-            prefs.edit().putBoolean("background_messages_enabled", isChecked).apply()
-
-            // Цвет ползунка в зависимости от состояния
-            if (isChecked) {
-                // 💡 Включено: ползунок справа, зелёный цвет (#A4C639)
-                switchBackgroundMessages.thumbDrawable.setTint(android.graphics.Color.parseColor("#A4C639"))
-            } else {
-                // 🌑 Выключено: ползунок слева, стандартный серый
-                switchBackgroundMessages.thumbDrawable.setTint(
-                    getColor(android.R.color.darker_gray)
-                )
-            }
-
-            // Короткое уведомление пользователю
-            Toast.makeText(
-                this,
-                if (isChecked) "Фоновые сообщения включены" else "Фоновые сообщения выключены",
-                Toast.LENGTH_SHORT
-            ).show()
-        }
 
         // 📁 Обработка кнопки "Сохранить и выйти"
         buttonSaveExit.setOnClickListener {
@@ -107,8 +106,15 @@ class SettingsActivity : AppCompatActivity() {
         editEndHour.setText(prefs.getString("END_HOUR", "20:00"))
         editInterval.setText(prefs.getString("INTERVAL", "00:10"))
         editToken.setText(prefs.getString("TOKEN", "SECRET123"))
-        editUserId.setText(prefs.getString("USER_ID", "YOUR_TRACKER_ID_123"))
+        editTrackerName.setText(prefs.getString("TRACKER_NAME", "YOUR_TRACKER_name_123"))
         editPassword.setText(prefs.getString("PASSWORD", "12345"))
+        val radioGroup = findViewById<RadioGroup>(R.id.radio_tracking_mode)
+        val mode = prefs.getString("TRACKING_MODE", "MANUAL")
+        if (mode == "AUTO") {
+            radioGroup.check(R.id.radio_auto)
+        } else {
+            radioGroup.check(R.id.radio_manual)
+        }
     }
 
     /**
@@ -119,7 +125,7 @@ class SettingsActivity : AppCompatActivity() {
         val newEnd = editEndHour.text.toString().trim()
         val newInterval = editInterval.text.toString().trim()
         val newToken = editToken.text.toString().trim()
-        val newUserId = editUserId.text.toString().trim()
+        val newTrackerName = editTrackerName.text.toString().trim()
         val newPassword = editPassword.text.toString().trim()
 
         // Проверка пароля (5 цифр)
@@ -134,7 +140,7 @@ class SettingsActivity : AppCompatActivity() {
             .putString("END_HOUR", newEnd)
             .putString("INTERVAL", newInterval)
             .putString("TOKEN", newToken)
-            .putString("USER_ID", newUserId)
+            .putString("TRACKER_NAME", newTrackerName)
             .putString("PASSWORD", newPassword)
             .apply()
 

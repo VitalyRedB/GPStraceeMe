@@ -185,7 +185,7 @@
                     android:padding="8dp" />
             </LinearLayout>
 
-            <!-- USER_ID -->
+            <!-- Tracker Name -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -202,7 +202,7 @@
                     android:textSize="14sp" />
 
                 <TextView
-                    android:id="@+id/text_user_id"
+                    android:id="@+id/text_tracker_name"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"

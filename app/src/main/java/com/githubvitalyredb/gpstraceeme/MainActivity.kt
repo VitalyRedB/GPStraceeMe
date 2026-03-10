@@ -34,8 +34,8 @@ class MainActivity : AppCompatActivity() {
         var TEST_END_HOUR = 20
         var TEST_INTERVAL_MINUTES = 10
         var TOKEN = "SECRET123"
-        var USER_ID = "KOD_ID_123"
-        const val EXTRA_BACKGROUND_MESSAGES = "EXTRA_BACKGROUND_MESSAGES"
+        var TRACKER_NAME = "Unknown"
+
     }
 
     private lateinit var prefs: SharedPreferences
@@ -43,7 +43,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var textEndHour: TextView
     private lateinit var textInterval: TextView
     private lateinit var textToken: TextView
-    private lateinit var textUserId: TextView
+    private lateinit var textTrackerName: TextView
     private lateinit var lastMessageTextView: TextView
     private lateinit var startButton: Button
     private lateinit var settingsButton: Button
@@ -72,7 +72,7 @@ class MainActivity : AppCompatActivity() {
         textEndHour = findViewById(R.id.text_end_hour)
         textInterval = findViewById(R.id.text_interval)
         textToken = findViewById(R.id.text_token)
-        textUserId = findViewById(R.id.text_user_id)
+        textTrackerName = findViewById(R.id.text_tracker_name)
         lastMessageTextView = findViewById(R.id.last_message_textview)
         startButton = findViewById(R.id.button_start_tracker)
         settingsButton = findViewById(R.id.settingsButton)
@@ -102,7 +102,7 @@ class MainActivity : AppCompatActivity() {
                 putExtra(TrackerService.EXTRA_END_HOUR, TEST_END_HOUR)
                 putExtra(TrackerService.EXTRA_INTERVAL, TEST_INTERVAL_MINUTES)
                 putExtra(TrackerService.EXTRA_TOKEN, TOKEN)
-                putExtra(TrackerService.EXTRA_USER_ID, USER_ID)
+                putExtra(TrackerService.EXTRA_TRACKER_NAME, TRACKER_NAME)
             }
 
             // Останавливаем и сразу запускаем снова
@@ -133,19 +133,21 @@ class MainActivity : AppCompatActivity() {
         val end = prefs.getString("END_HOUR", "20:00") ?: "20:00"
         val interval = prefs.getString("INTERVAL", "00:10") ?: "00:10"
         val token = prefs.getString("TOKEN", "SECRET123") ?: "SECRET123"
-        val userId = prefs.getString("USER_ID", "YOUR_TRACKER_ID_123") ?: "YOUR_TRACKER_ID_123"
+        val trackerName = prefs.getString("TRACKER_NAME", "Input_TRACKER_NAME") ?: "Input_TRACKER_NAME"
+
 
         textStartHour.text = start
         textEndHour.text = end
         textInterval.text = interval
         textToken.text = token
-        textUserId.text = userId
+        textTrackerName.text = trackerName
 
         TEST_START_HOUR = start.split(":")[0].toIntOrNull() ?: 8
         TEST_END_HOUR = end.split(":")[0].toIntOrNull() ?: 20
         TEST_INTERVAL_MINUTES = interval.split(":").getOrNull(1)?.toIntOrNull() ?: 10
         TOKEN = token
-        USER_ID = userId
+        TRACKER_NAME = trackerName
+
     }
 
     private fun checkPermissionsAndStartTracker() {
@@ -182,7 +184,7 @@ class MainActivity : AppCompatActivity() {
             putExtra(TrackerService.EXTRA_END_HOUR, TEST_END_HOUR)
             putExtra(TrackerService.EXTRA_INTERVAL, TEST_INTERVAL_MINUTES)
             putExtra(TrackerService.EXTRA_TOKEN, TOKEN)
-            putExtra(TrackerService.EXTRA_USER_ID, USER_ID)
+            putExtra(TrackerService.EXTRA_TRACKER_NAME, TRACKER_NAME)
         }
         logPendingPoints(this) // ВРЕМЕННЫЙ ТЕСТ ПЯМЯТИ
 
@@ -276,9 +278,6 @@ class MainActivity : AppCompatActivity() {
             Log.e("TEST_PREFS", "Ошибка при чтении офлайн-точек: ${e.message}", e)
         }
     }
-
-
-
 }
 
 

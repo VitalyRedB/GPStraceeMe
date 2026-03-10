@@ -14,7 +14,7 @@ import kotlinx.coroutines.launch
  */
 class GpsTrackerManager(
     private val token: String,               // Токен авторизации
-    private val userId: String,              // Идентификатор пользователя
+    private val trackerName: String,              // Идентификатор tracker
     private val onJsonSent: (String) -> Unit // Callback — JSON передаётся в UI
 ) {
 
@@ -32,7 +32,7 @@ class GpsTrackerManager(
                 // Формируем объект данных
                 val gpsPoint = GpsPoint(
                     token = token,
-                    user_id = userId,
+                    trackerName = trackerName,
                     date = dateTime.first,
                     time = dateTime.second,
                     lat = lat,

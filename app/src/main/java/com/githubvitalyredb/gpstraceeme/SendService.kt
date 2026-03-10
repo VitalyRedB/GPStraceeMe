@@ -115,15 +115,30 @@ class SendService : Service() {
 
     /** Отправка JSON на сервер */
     private fun sendJsonToServer(jsonString: String): Boolean {
-        val client = OkHttpClient()
-        val JSON_MEDIA = "application/json; charset=utf-8".toMediaType()
-        val body = jsonString.toRequestBody(JSON_MEDIA)
-
+        // --- НАСТРОЙКА СЕКРЕТА ---
+        val APP_SECRET = "MY_SALT_2026"
         val url = "https://gpstrackerflow.pythonanywhere.com/api/add_point"
+
+        val client = OkHttpClient()
+
+        // Парсим входящий JSON, чтобы добавить в него соль к токену
+        val gson = Gson()
+        val type = object : TypeToken<MutableMap<String, Any>>() {}.type
+        val data: MutableMap<String, Any> = gson.fromJson(jsonString, type)
+
+        // Берем токен из JSON и добавляем к нему соль
+        val originalToken = data["token"]?.toString() ?: ""
+        val saltedToken = "${originalToken}_${APP_SECRET}"
+        data["token"] = saltedToken // Обновляем токен в данных
+
+        val finalJson = gson.toJson(data) // Собираем JSON обратно
+
+        val JSON_MEDIA = "application/json; charset=utf-8".toMediaType()
+        val body = finalJson.toRequestBody(JSON_MEDIA)
 
         Log.e(TAG, "====== ОТПРАВКА НА СЕРВЕР ======")
         Log.e(TAG, "URL: $url")
-        Log.e(TAG, "JSON BODY: $jsonString")
+        Log.e(TAG, "JSON BODY: $finalJson")
 
         val request = Request.Builder()
             .url(url)
@@ -134,10 +149,7 @@ class SendService : Service() {
             client.newCall(request).execute().use { response ->
 
                 val responseBody = response.body?.string()
-
-                Log.e(TAG, "RESPONSE CODE: ${response.code}")
-                Log.e(TAG, "RESPONSE MESSAGE: ${response.message}")
-                Log.e(TAG, "RESPONSE BODY: $responseBody")
+                Log.d(TAG, "RESPONSE: ${response.code} | $responseBody")
 
                 if (response.isSuccessful) {
                     true

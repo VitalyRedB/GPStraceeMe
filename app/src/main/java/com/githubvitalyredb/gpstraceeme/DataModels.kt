@@ -5,7 +5,7 @@ data class StepData(val initialSteps: Float, val runningSteps: Float, val startT
 // ADD Class : Модель для отправки данных на сервер
 data class GpsPoint(
     val token: String,
-    val user_id: String,
+    val trackerName: String,
     val date: String,
     val time: String,
     val lat: Double,
