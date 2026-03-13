@@ -1,266 +1,298 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="#000000"
-    tools:context=".MainActivity">
+    android:layout_height="match_parent">
 
-    <!-- Верхний блок с параметрами в ScrollView -->
-    <ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="0.82">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="16dp"
-            android:background="#222222">
-
-            <!-- Заголовок -->
-            <TextView
-                android:id="@+id/headerTextView"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Data Tracker Info"
-                android:textColor="#A4C639"
-                android:textSize="20sp"
-                android:textStyle="bold"
-                android:gravity="center"
-                android:paddingTop="16dp"
-                android:paddingBottom="16dp"
-                android:shadowColor="#55000000"
-                android:shadowDx="2"
-                android:shadowDy="2"
-                android:shadowRadius="1.5"
-                android:layout_marginStart="8dp"
-                android:layout_marginEnd="8dp"
-                android:background="@android:color/transparent" />
-
-
-            <!-- Active days -->
-            <LinearLayout
-                android:id="@+id/rootMain"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_marginBottom="8dp">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Active days :"
-                    android:textColor="@android:color/white"
-                    android:textSize="14sp"
-                    android:ellipsize="end"
-                    android:singleLine="true"
-                    android:layout_marginEnd="8dp"/>
-
-                <HorizontalScrollView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:fillViewport="false"
-                    android:scrollbars="none">
-
-                    <LinearLayout
-                        android:id="@+id/daysContainer"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal" />
-                </HorizontalScrollView>
-
-            </LinearLayout>
-
-
-            <!-- START_HOUR -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_marginBottom="8dp">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="START_HOUR:"
-                    android:textColor="@android:color/white"
-                    android:textSize="14sp" />
-
-                <TextView
-                    android:id="@+id/text_start_hour"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="08:00"
-                    android:textColor="#FFD700"
-                    android:background="@drawable/edittext_background"
-                    android:padding="8dp" />
-            </LinearLayout>
-
-            <!-- END_HOUR -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_marginBottom="8dp">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="END_HOUR:"
-                    android:textColor="@android:color/white"
-                    android:textSize="14sp" />
-
-                <TextView
-                    android:id="@+id/text_end_hour"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="20:00"
-                    android:textColor="#FFD700"
-                    android:background="@drawable/edittext_background"
-                    android:padding="8dp" />
-            </LinearLayout>
-
-            <!-- INTERVAL -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_marginBottom="8dp">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="INTERVAL:"
-                    android:textColor="@android:color/white"
-                    android:textSize="14sp" />
-
-                <TextView
-                    android:id="@+id/text_interval"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="00:10"
-                    android:textColor="#FFD700"
-                    android:background="@drawable/edittext_background"
-                    android:padding="8dp" />
-            </LinearLayout>
-
-            <!-- TOKEN -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_marginBottom="8dp">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="TOKEN:"
-                    android:textColor="@android:color/white"
-                    android:textSize="14sp" />
-
-                <TextView
-                    android:id="@+id/text_token"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="SECRET"
-                    android:textColor="#333333"
-                    android:background="@drawable/edittext_background"
-                    android:padding="8dp" />
-            </LinearLayout>
-
-            <!-- Tracker Name -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_marginBottom="8dp">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Tracker_NAME:"
-                    android:textColor="@android:color/white"
-                    android:textSize="14sp" />
-
-                <TextView
-                    android:id="@+id/text_tracker_name"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="YOUR_TRACKER_ID_123"
-                    android:textColor="#FFD700"
-                    android:background="@drawable/edittext_background"
-                    android:padding="8dp" />
-            </LinearLayout>
-
-            <!-- Кнопка СТАРТ -->
-            <Button
-                android:id="@+id/button_start_tracker"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Start Tracker"
-                android:layout_marginTop="8dp"
-                android:textAllCaps="false"
-                android:backgroundTint="#A4C639"
-                android:textColor="#000000"
-                android:padding="12dp" />
-
-            <!-- Поле вывода информации (жёлтый текст) -->
-            <TextView
-                android:id="@+id/last_message_textview"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Last server message: ---"
-                android:textColor="#FFD700"
-                android:textSize="14sp"
-                android:padding="8dp"
-                android:gravity="top"
-                android:background="#111111"
-                android:scrollbars="vertical" />
-        </LinearLayout>
-    </ScrollView>
-
-    <!-- Нижний блок с кнопкой настроек и информацией о разработчике -->
+    <!-- ОСНОВНОЙ ЭКРАН -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="0.30"
-        android:gravity="bottom"
-        android:orientation="vertical">
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:background="#000000"
+        tools:context=".MainActivity">
 
-        <Button
-            android:id="@+id/settingsButton"
+        <!-- Верхний блок -->
+        <ScrollView
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp"
-            android:backgroundTint="#A4C639"
-            android:padding="12dp"
-            android:text="Application settings"
-            android:textAllCaps="false"
-            android:textColor="#000000" />
+            android:layout_height="0dp"
+            android:layout_weight="0.82">
 
-        <include layout="@layout/developer_info_layout" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp"
+                android:background="#222222">
+
+                <!-- Заголовок -->
+                <TextView
+                    android:id="@+id/headerTextView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Data Tracker Info"
+                    android:textColor="#A4C639"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:gravity="center"
+                    android:paddingTop="16dp"
+                    android:paddingBottom="16dp"
+                    android:shadowColor="#55000000"
+                    android:shadowDx="2"
+                    android:shadowDy="2"
+                    android:shadowRadius="1.5"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginEnd="8dp"
+                    android:background="@android:color/transparent" />
+
+                <!-- Active days -->
+                <LinearLayout
+                    android:id="@+id/rootMain"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="8dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Active days :"
+                        android:textColor="@android:color/white"
+                        android:textSize="14sp"
+                        android:layout_marginEnd="8dp"/>
+
+                    <HorizontalScrollView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:scrollbars="none">
+
+                        <LinearLayout
+                            android:id="@+id/daysContainer"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal" />
+                    </HorizontalScrollView>
+
+                </LinearLayout>
+
+                <!-- START_HOUR -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="8dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="START_HOUR:"
+                        android:textColor="@android:color/white"/>
+
+                    <TextView
+                        android:id="@+id/text_start_hour"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="08:00"
+                        android:textColor="#FFD700"
+                        android:background="@drawable/edittext_background"
+                        android:padding="8dp"/>
+                </LinearLayout>
+
+                <!-- END_HOUR -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="8dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="END_HOUR:"
+                        android:textColor="@android:color/white"/>
+
+                    <TextView
+                        android:id="@+id/text_end_hour"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="20:00"
+                        android:textColor="#FFD700"
+                        android:background="@drawable/edittext_background"
+                        android:padding="8dp"/>
+                </LinearLayout>
+
+                <!-- INTERVAL -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="8dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="INTERVAL:"
+                        android:textColor="@android:color/white"/>
+
+                    <TextView
+                        android:id="@+id/text_interval"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="00:10"
+                        android:textColor="#FFD700"
+                        android:background="@drawable/edittext_background"
+                        android:padding="8dp"/>
+                </LinearLayout>
+
+                <!-- TOKEN -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="8dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="TOKEN:"
+                        android:textColor="@android:color/white"/>
+
+                    <TextView
+                        android:id="@+id/text_token"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="SECRET"
+                        android:textColor="#333333"
+                        android:background="@drawable/edittext_background"
+                        android:padding="8dp"/>
+                </LinearLayout>
+
+                <!-- Tracker Name -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="8dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Tracker_NAME:"
+                        android:textColor="@android:color/white"/>
+
+                    <TextView
+                        android:id="@+id/text_tracker_name"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="YOUR_TRACKER_name"
+                        android:textColor="#FFD700"
+                        android:background="@drawable/edittext_background"
+                        android:padding="8dp"/>
+                </LinearLayout>
+
+                <!-- Кнопка СТАРТ -->
+                <Button
+                    android:id="@+id/button_start_tracker"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Start Tracker"
+                    android:layout_marginTop="8dp"
+                    android:textAllCaps="false"
+                    android:backgroundTint="#A4C639"
+                    android:textColor="#000000"
+                    android:padding="12dp"/>
+
+                <!-- Поле сообщения -->
+                <TextView
+                    android:id="@+id/last_message_textview"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Last server message: ---"
+                    android:textColor="#FFD700"
+                    android:textSize="14sp"
+                    android:padding="8dp"
+                    android:background="#111111"/>
+
+            </LinearLayout>
+        </ScrollView>
+
+        <!-- Нижний блок -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="0.30"
+            android:gravity="bottom"
+            android:orientation="vertical">
+
+            <Button
+                android:id="@+id/settingsButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:backgroundTint="#A4C639"
+                android:padding="12dp"
+                android:text="Application settings"
+                android:textAllCaps="false"
+                android:textColor="#000000"/>
+
+            <include layout="@layout/developer_info_layout"/>
+
+        </LinearLayout>
+
     </LinearLayout>
-</LinearLayout>
+
+    <!-- AUTO MODE overlay -->
+    <LinearLayout
+        android:id="@+id/auto_mode_overlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#88000000"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/auto_mode_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="AUTO MODE"
+            android:textSize="34sp"
+            android:textStyle="bold"
+            android:textColor="#FFFFFF"
+            android:background="#AA000000"
+            android:padding="20dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Tracker running automatically"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp"
+            android:layout_marginTop="10dp"/>
+
+    </LinearLayout>
+
+</FrameLayout>
+
+
 
 
 

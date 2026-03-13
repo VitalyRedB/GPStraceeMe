@@ -25,6 +25,8 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var daysManager: DaysManager
     private lateinit var daysContainer: LinearLayout
+    private lateinit var autoOverlay: LinearLayout
+
 
     companion object {
         private const val PREFS_NAME = "AppPrefs"
@@ -63,6 +65,8 @@ class MainActivity : AppCompatActivity() {
         Log.d(TAG, "onCreate")
 
         prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        // maska avtoMode
+        autoOverlay = findViewById(R.id.auto_mode_overlay)
 
         daysContainer = findViewById(R.id.daysContainer)
         daysManager = DaysManager(this)
@@ -88,10 +92,27 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        // ✅ Проверка, режима AUTOorMANUAL при открытии приложения
+        if (isAutoMode()) {
+            Log.d(TAG, "AUTO MODE активен")
+
+            if (!isServiceRunning(TrackerService::class.java)) {
+                Log.d(TAG, "Запускаем TrackerService автоматически")
+                //startTracker()
+            }
+            autoOverlay.visibility = LinearLayout.VISIBLE
+        } else {
+            autoOverlay.visibility = LinearLayout.GONE
+        }
+
+
+
         daysManager.drawDays(daysContainer)
         MusicPlayer.start(this)
         loadDataToViews()
         updateStartButtonState()
+
+
 
         // ✅ Проверка, нужно ли перезапустить трекер с новыми настройками
         if (isServiceRunning(TrackerService::class.java)) {
@@ -277,6 +298,10 @@ class MainActivity : AppCompatActivity() {
         } catch (e: Exception) {
             Log.e("TEST_PREFS", "Ошибка при чтении офлайн-точек: ${e.message}", e)
         }
+    }
+    private fun isAutoMode(): Boolean {
+        val mode = prefs.getString("TRACKING_MODE", "MANUAL")
+        return mode == "AUTO"
     }
 }
 
