@@ -21,6 +21,8 @@ class AvtoTrackerService : Service() {
         private const val TAG = "AvtoTrackerService"
     }
 
+    private lateinit var engine: AutoTrackingEngine
+
     private lateinit var locationProvider: LocationProvider
 
     private val filter = LocationFilter()
@@ -37,6 +39,8 @@ class AvtoTrackerService : Service() {
         }
 
         startForeground(2, createNotification())
+        engine = AutoTrackingEngine(this)
+        engine.start()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -57,6 +61,7 @@ class AvtoTrackerService : Service() {
         locationProvider.stopLocationUpdates()
 
         super.onDestroy()
+        engine.stop()
     }
 
     override fun onBind(intent: Intent?): IBinder? {

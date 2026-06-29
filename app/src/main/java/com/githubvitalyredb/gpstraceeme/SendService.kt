@@ -40,7 +40,7 @@ class SendService : Service() {
                     gson.fromJson(prefs.getString(KEY_TEMP_LIST, "[]"), type) ?: mutableListOf()
                 list.add(jsonPoint)
                 prefs.edit().putString(KEY_TEMP_LIST, gson.toJson(list)).apply()
-                Log.d(TAG, "Добавлена точка в очередь — всего123: ${list.size}")
+                Log.d(TAG, "Добавлена точка в очередь — всего: ${list.size}")
             } catch (e: Exception) {
                 Log.e(TAG, "Ошибка при добавлении точки: ${e.message}", e)
             }
@@ -128,7 +128,8 @@ class SendService : Service() {
 
         // Берем токен из JSON и добавляем к нему соль
         val originalToken = data["token"]?.toString() ?: ""
-        val saltedToken = "${originalToken}_${APP_SECRET}"
+        Log.e(TAG, "<BRED originalToken: $originalToken")
+        val saltedToken = "${originalToken}:${APP_SECRET}"
         data["token"] = saltedToken // Обновляем токен в данных
 
         val finalJson = gson.toJson(data) // Собираем JSON обратно

@@ -26,8 +26,11 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.GPSTraceeMe"
-        android:name="com.githubvitalyredb.gpstraceeme.auto.MotionReceiver"
+
         android:exported="false">
+        <receiver
+            android:name=".auto.MotionReceiver"
+            android:exported="false" />
 
         <!-- 🌍 Главная активность -->
         <activity

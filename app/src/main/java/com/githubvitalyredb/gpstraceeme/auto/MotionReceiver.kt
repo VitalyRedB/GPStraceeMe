@@ -18,12 +18,9 @@ class MotionReceiver : BroadcastReceiver() {
     companion object {
         private const val TAG = "MotionReceiver"
     }
-
     override fun onReceive(context: Context, intent: Intent) {
 
-        if (!ActivityTransitionResult.hasResult(intent)) {
-            return
-        }
+        if (!ActivityTransitionResult.hasResult(intent)) return
 
         val result = ActivityTransitionResult.extractResult(intent) ?: return
 
@@ -31,20 +28,19 @@ class MotionReceiver : BroadcastReceiver() {
 
             val activity = event.activityType
 
-            when (activity) {
-
-                DetectedActivity.STILL -> {
-                    Log.d(TAG, "Устройство стоит")
-                }
-
-                DetectedActivity.WALKING -> {
-                    Log.d(TAG, "Пользователь идет")
-                }
-
-                DetectedActivity.IN_VEHICLE -> {
-                    Log.d(TAG, "Пользователь едет")
-                }
+            val isMoving = when (activity) {
+                DetectedActivity.STILL -> false
+                DetectedActivity.WALKING -> true
+                DetectedActivity.IN_VEHICLE -> true
+                else -> false
             }
+
+            Log.d(TAG, "Motion: $activity → moving=$isMoving")
+
+            // отправляем broadcast в Engine
+            val motionIntent = Intent("MOTION_UPDATE")
+            motionIntent.putExtra("isMoving", isMoving)
+            context.sendBroadcast(motionIntent)
         }
     }
 }

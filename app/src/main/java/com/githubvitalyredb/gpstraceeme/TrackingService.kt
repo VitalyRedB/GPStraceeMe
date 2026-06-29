@@ -1,8 +1,10 @@
 package com.githubvitalyredb.gpstraceeme
 
+import android.app.AlarmManager
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
@@ -23,7 +25,10 @@ class TrackerService : Service(), LocationHelper.OnLocationReceivedCallback {
 
     private lateinit var locationHelper: LocationHelper
     private lateinit var gpsTrackerManager: GpsTrackerManager
-    private val handler = Handler(Looper.getMainLooper())
+
+    // 🌟 Заменяем Handler на AlarmManager
+    private var alarmManager: AlarmManager? = null
+    private var alarmIntent: PendingIntent? = null
 
     private var periodicInterval: Long = TimeUnit.MINUTES.toMillis(10)
     private val MAX_SLEEP_INTERVAL = TimeUnit.HOURS.toMillis(1)
@@ -33,7 +38,6 @@ class TrackerService : Service(), LocationHelper.OnLocationReceivedCallback {
     private var TRACKER_NAME = "KOD_ID_123"
     private var backgroundMessagesEnabled = true
     private var daysMap: MutableMap<String, Int> = mutableMapOf()
-    private var periodicRunning = false
 
     override fun onCreate() {
         super.onCreate()
@@ -52,11 +56,8 @@ class TrackerService : Service(), LocationHelper.OnLocationReceivedCallback {
             startForeground(NOTIFICATION_ID, createNotification())
             sendServiceStatus(true)
 
-            if (!periodicRunning) {
-                periodicRunning = true
-                handler.post(periodicTask)
-                Log.d(TAG, "Периодическая задача запущена в onCreate.")
-            }
+            // Запускаем будильник при первом создании сервиса
+            startAlarmManager()
 
         } catch (e: Exception) {
             Log.e(TAG, "Ошибка запуска сервиса: ${e.message}", e)
@@ -65,7 +66,7 @@ class TrackerService : Service(), LocationHelper.OnLocationReceivedCallback {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        Log.d(TAG, "onStartCommand: Intent получен. startId=$startId")
+        Log.d(TAG, "onStartCommand: Intent получен. action=${intent?.action}, startId=$startId")
 
         // 🔹 Обновляем настройки из MainActivity или из SharedPreferences
         intent?.let {
@@ -96,84 +97,114 @@ class TrackerService : Service(), LocationHelper.OnLocationReceivedCallback {
         (getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager)
             ?.notify(NOTIFICATION_ID, createNotification())
 
-        // 🔹 Экстренное снятие координат по кнопке СТАРТ
-        if (intent?.action == ACTION_REQUEST_IMMEDIATE_LOCATION) {
-            Log.d(TAG, "Экстренное снятие координат по кнопке СТАРТ")
-
-            // Снимаем координаты
-            locationHelper.startLocationUpdates(this)
-
-            // Сброс старого periodicTask и перезапуск с новым интервалом
-            handler.removeCallbacks(periodicTask)
-            periodicRunning = false
-            handler.postDelayed(periodicTask, periodicInterval)
-            periodicRunning = true
-
-            try {
-                val mp = MediaPlayer.create(this, R.raw.click_sound)
-                mp.setOnCompletionListener { it.release() }
-                mp.start()
-            } catch (e: Exception) {
-                Log.w(TAG, "Ошибка при воспроизведении звука: ${e.message}")
-            }
-
+        // 🔹 Обработка тика будильника (телефон проснулся в фоне)
+        if (intent?.action == ACTION_ALARM_TICK) {
+            Log.i(TAG, "Сигнал от AlarmManager получен. Проверяем расписание...")
+            executeTrackingCheck()
             return START_STICKY
         }
 
-        // 🔹 Стандартный запуск periodicTask (если ещё не запущен)
-        if (!periodicRunning) {
-            Log.d(TAG, "Запуск periodicTask")
-            handler.removeCallbacks(periodicTask) // на всякий случай
-            handler.post(periodicTask)
-            periodicRunning = true
-        } else {
-            Log.d(TAG, "periodicTask уже запущен, просто обновлены настройки")
+        // 🔹 Экстренное снятие координат по кнопке СТАРТ (перезапуск настроек)
+        if (intent?.action == ACTION_REQUEST_IMMEDIATE_LOCATION || intent?.action == null) {
+            Log.d(TAG, "Экстренное снятие координат или обновление настроек по кнопке СТАРТ")
+
+            // Разово снимаем координаты прямо сейчас
+            locationHelper.startLocationUpdates(this)
+
+            // Перезапускаем системный будильник с новыми интервалами
+            startAlarmManager()
+
+            // Звук клика проигрываем ТОЛЬКО если это было явное нажатие кнопки ACTION_REQUEST_IMMEDIATE_LOCATION
+            if (intent?.action == ACTION_REQUEST_IMMEDIATE_LOCATION) {
+                try {
+                    val mp = MediaPlayer.create(this, R.raw.click_sound)
+                    mp.setOnCompletionListener { it.release() }
+                    mp.start()
+                } catch (e: Exception) {
+                    Log.w(TAG, "Ошибка при воспроизведении звука: ${e.message}")
+                }
+            }
         }
 
         return START_STICKY
     }
 
+    /**
+     * Запуск неубиваемого системного таймера через AlarmManager
+     */
+    private fun startAlarmManager() {
+        stopAlarmManager() // Сбрасываем старый будильник
 
-    private val periodicTask = object : Runnable {
-        override fun run() {
-            try {
-                loadSettings()
-                val now = Calendar.getInstance()
-                val hour = now.get(Calendar.HOUR_OF_DAY)
-                val dayName = when (now.get(Calendar.DAY_OF_WEEK)) {
-                    Calendar.MONDAY -> "Mon"
-                    Calendar.TUESDAY -> "Tue"
-                    Calendar.WEDNESDAY -> "Wed"
-                    Calendar.THURSDAY -> "Thu"
-                    Calendar.FRIDAY -> "Fri"
-                    Calendar.SATURDAY -> "Sat"
-                    Calendar.SUNDAY -> "Sun"
-                    else -> "Unknown"
-                }
+        val intervalMs = periodicInterval.coerceAtMost(MAX_SLEEP_INTERVAL)
+        Log.d(TAG, "Настройка AlarmManager на интервал: ${intervalMs / 60000} мин.")
 
-                val isDayActive = daysMap[dayName] == 1
-                val isTimeActive = hour in startHour until endHour
+        alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
-                if (isDayActive && isTimeActive) {
-                    Log.i(TAG, "Активно: $dayName $hour:00 → запрос координат.")
-                    locationHelper.startLocationUpdates(this@TrackerService)
-                } else {
-                    Log.d(TAG, "Неактивно: $dayName $hour:00 → следующая проверка через ${periodicInterval / 60000} мин.")
-                }
+        val intent = Intent(this, TrackerService::class.java).apply {
+            action = ACTION_ALARM_TICK
+        }
 
-            } catch (e: Exception) {
-                Log.e(TAG, "Ошибка в periodicTask: ${e.message}", e)
-            } finally {
-                handler.removeCallbacks(this)
-                handler.postDelayed(this, periodicInterval.coerceAtMost(MAX_SLEEP_INTERVAL))
+        alarmIntent = PendingIntent.getService(
+            this,
+            0,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        // ELAPSED_REALTIME_WAKEUP гарантирует, что Android разбудит процессор из Doze Mode
+        alarmManager?.setRepeating(
+            AlarmManager.ELAPSED_REALTIME_WAKEUP,
+            SystemClock.elapsedRealtime() + intervalMs,
+            intervalMs,
+            alarmIntent!!
+        )
+    }
+
+    private fun stopAlarmManager() {
+        if (alarmManager != null && alarmIntent != null) {
+            Log.d(TAG, "Остановка AlarmManager")
+            alarmManager?.cancel(alarmIntent!!)
+            alarmIntent = null
+        }
+    }
+
+    /**
+     * Твоя логика проверки расписания (бывший periodicTask)
+     */
+    private fun executeTrackingCheck() {
+        try {
+            loadSettings()
+            val now = Calendar.getInstance()
+            val hour = now.get(Calendar.HOUR_OF_DAY)
+            val dayName = when (now.get(Calendar.DAY_OF_WEEK)) {
+                Calendar.MONDAY -> "Mon"
+                Calendar.TUESDAY -> "Tue"
+                Calendar.WEDNESDAY -> "Wed"
+                Calendar.THURSDAY -> "Thu"
+                Calendar.FRIDAY -> "Fri"
+                Calendar.SATURDAY -> "Sat"
+                Calendar.SUNDAY -> "Sun"
+                else -> "Unknown"
             }
+
+            val isDayActive = daysMap[dayName] == 1
+            val isTimeActive = hour in startHour until endHour
+
+            if (isDayActive && isTimeActive) {
+                Log.i(TAG, "Активно: $dayName $hour:00 → запрос координат.")
+                locationHelper.startLocationUpdates(this@TrackerService)
+            } else {
+                Log.d(TAG, "Неактивно: $dayName $hour:00 → следующая проверка по будильнику.")
+            }
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Ошибка при проверке расписания: ${e.message}", e)
         }
     }
 
     override fun onLocationReceived(location: Location) {
         locationHelper.stopLocationUpdates()
         Log.i(TAG, "Координаты Х/У: ${location.latitude}, ${location.longitude}")
-
         gpsTrackerManager.sendGpsPoint(this, location.latitude, location.longitude)
     }
 
@@ -218,23 +249,19 @@ class TrackerService : Service(), LocationHelper.OnLocationReceivedCallback {
     }
 
     override fun onDestroy() {
-        periodicRunning = false
-        handler.removeCallbacks(periodicTask)
+        stopAlarmManager()
         locationHelper.stopLocationUpdates()
         sendServiceStatus(false)
         Log.d(TAG, "Service onDestroy: трекер остановлен.")
         super.onDestroy()
     }
 
-    /** Чтение настроек из SharedPreferences (используем AppPrefs как в MainActivity) */
     private fun loadSettings() {
         val prefs = getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
 
-        // Если в prefs раньше были строки HH:MM, пытаемся корректно распарсить
         startHour = prefs.getString("START_HOUR", "08:00")?.split(":")?.getOrNull(0)?.toIntOrNull() ?: 8
         endHour = prefs.getString("END_HOUR", "20:00")?.split(":")?.getOrNull(0)?.toIntOrNull() ?: 20
 
-        // Интервал храним в виде "00:10" или в миллисекундах — совместим оба варианта
         val intervalStr = prefs.getString("INTERVAL", null)
         periodicInterval = if (intervalStr != null && intervalStr.contains(":")) {
             TimeUnit.MINUTES.toMillis(intervalStr.split(":").getOrNull(1)?.toLongOrNull() ?: 10)
@@ -257,7 +284,6 @@ class TrackerService : Service(), LocationHelper.OnLocationReceivedCallback {
         Log.d(TAG, "SharedPreferences: Загружены настройки: $startHour-$endHour, интервал ${periodicInterval / 60000} мин.")
     }
 
-
     override fun onBind(intent: Intent?): IBinder? = null
 
     companion object {
@@ -275,6 +301,9 @@ class TrackerService : Service(), LocationHelper.OnLocationReceivedCallback {
         const val EXTRA_BACKGROUND_MESSAGES = "EXTRA_BACKGROUND_MESSAGES"
 
         const val ACTION_REQUEST_IMMEDIATE_LOCATION = "com.githubvitalyredb.gpstraceeme.ACTION_REQUEST_IMMEDIATE_LOCATION"
+
+        // Ключ для интента будильника
+        const val ACTION_ALARM_TICK = "com.githubvitalyredb.gpstraceeme.ACTION_ALARM_TICK"
     }
 }
 
